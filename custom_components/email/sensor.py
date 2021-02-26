@@ -12,7 +12,7 @@ from homeassistant.helpers.entity import Entity
 
 from .const import (
     CONF_EMAIL, CONF_PASSWORD, CONF_SHOW_ALL, CONF_IMAP_SERVER,
-    CONF_IMAP_PORT, CONF_SSL, CONF_EMAIL_FOLDER, ATTR_EMAILS, ATTR_COUNT,
+    CONF_IMAP_PORT, CONF_EMAIL_FOLDER, ATTR_EMAILS, ATTR_COUNT,
     ATTR_TRACKING_NUMBERS, EMAIL_ATTR_FROM, EMAIL_ATTR_SUBJECT,
     EMAIL_ATTR_BODY)
 
@@ -41,9 +41,8 @@ from .parsers.reolink import ATTR_REOLINK, EMAIL_DOMAIN_REOLINK, parse_reolink
 from .parsers.chewy import ATTR_CHEWY, EMAIL_DOMAIN_CHEWY, parse_chewy
 from .parsers.groupon import ATTR_GROUPON, EMAIL_DOMAIN_GROUPON, parse_groupon
 from .parsers.zazzle import ATTR_ZAZZLE, EMAIL_DOMAIN_ZAZZLE, parse_zazzle
-from .parsers.home_depot import ATTR_HOME_DEPOT, EMAIL_DOMAIN_HOME_DEPOT, parse_home_depot
 from .parsers.swiss_post import ATTR_SWISS_POST, EMAIL_DOMAIN_SWISS_POST, parse_swiss_post
-from .parsers.bespoke_post import ATTR_DSW, EMAIL_DOMAIN_DSW, parse_bespoke_post
+
 parsers = [
     (ATTR_UPS, EMAIL_DOMAIN_UPS, parse_ups),
     (ATTR_FEDEX, EMAIL_DOMAIN_FEDEX, parse_fedex),
@@ -70,22 +69,19 @@ parsers = [
     (ATTR_CHEWY, EMAIL_DOMAIN_CHEWY, parse_chewy),
     (ATTR_GROUPON, EMAIL_DOMAIN_GROUPON, parse_groupon),
     (ATTR_ZAZZLE, EMAIL_DOMAIN_ZAZZLE, parse_zazzle),
-    (ATTR_HOME_DEPOT, EMAIL_DOMAIN_HOME_DEPOT, parse_home_depot),
     (ATTR_SWISS_POST, EMAIL_DOMAIN_SWISS_POST, parse_swiss_post),
-    (ATTR_DSW, EMAIL_DOMAIN_DSW, parse_bespoke_post),
 ]
 
 _LOGGER = logging.getLogger(__name__)
 
 DOMAIN = 'email'
-SCAN_INTERVAL = timedelta(seconds=5*60)
+SCAN_INTERVAL = timedelta(seconds=60*60)
 
 PLATFORM_SCHEMA = PLATFORM_SCHEMA.extend({
     vol.Required(CONF_EMAIL): cv.string,
     vol.Required(CONF_PASSWORD): cv.string,
     vol.Required(CONF_IMAP_SERVER, default='imap.gmail.com'): cv.string,
     vol.Required(CONF_IMAP_PORT, default=993): cv.positive_int,
-    vol.Required(CONF_SSL, default=True): cv.boolean,
     vol.Required(CONF_EMAIL_FOLDER, default='INBOX'): cv.string,
     vol.Required(CONF_SHOW_ALL, default=False): cv.boolean,
 })
@@ -108,7 +104,6 @@ class EmailEntity(Entity):
         self.email_address = config[CONF_EMAIL]
         self.password = config[CONF_PASSWORD]
         self.email_folder = config[CONF_EMAIL_FOLDER]
-        self.ssl = config[CONF_SSL]
 
         self.flag = 'ALL' if config[CONF_SHOW_ALL] else 'UNSEEN'
 
@@ -119,7 +114,7 @@ class EmailEntity(Entity):
             ATTR_TRACKING_NUMBERS: {}
         }
         emails = []
-        server = IMAPClient(self.imap_server, use_uid=True, ssl=self.ssl)
+        server = IMAPClient(self.imap_server, use_uid=True)
 
         try:
             server.login(self.email_address, self.password)

@@ -7,7 +7,7 @@ from ..const import EMAIL_ATTR_BODY
 
 _LOGGER = logging.getLogger(__name__)
 ATTR_USPS = 'usps'
-EMAIL_DOMAIN_USPS = 'usps.gov'
+EMAIL_DOMAIN_USPS = 'usps.com'
 
 
 def parse_usps(email):
@@ -19,7 +19,8 @@ def parse_usps(email):
     for link in links:
         if not link:
             continue
-        match = re.search('selectedTrckNum=(.*?)&selectedTypeOfLabel', link)
+          
+        match = re.search('tLabels=(.*?)&utm_source', link)
         if match and match.group(1) not in tracking_numbers:
             tracking_numbers.append(match.group(1))
 
